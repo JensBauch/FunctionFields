@@ -3,9 +3,13 @@
 FunctionFields is a package for the arithmetic in function field written for Magma V2.17-6
 
 It contains the following packages:
+
 1. +IdealsFF.m*
+
 2. Helpfunction.m
+
 3. DivisoerRep.m
+
 4. NewDivisoerRep.m
 
 *Many routines are translations from the package +Ideals.m (see http://montesproject.blogspot.ca/)
