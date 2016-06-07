@@ -8,9 +8,9 @@ It contains the following packages:
 
 2. Helpfunction.m
 
-3. DivisoerRep.m
+3. DivisorRep.m
 
-4. NewDivisoerRep.m
+4. NewDivisorRep.m
 
 *Many routines are translations from the package +Ideals.m (see http://montesproject.blogspot.ca/)
 ## Getting Started
