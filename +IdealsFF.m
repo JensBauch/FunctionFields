@@ -1,5 +1,7 @@
 freeze;
 
+//import "~/Mathematik/Programming/Magma/FunctionFields/Utilities_Functions.m": Random;
+Attach("~/Mathematik/Programming/Magma/FunctionFields/Utilities_Functions.m");
 declare verbose montestalk, 4;
 declare verbose hds, 4;
 declare attributes FldFun: 
@@ -107,6 +109,29 @@ OkutsuFrameLevel := recformat<
     polynomial: RngUPolElt
 >;
 
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+
+intrinsic Deg(z::FldFunElt)->RngIntElt
+{}
+//if z eq 0 then return -Infinity();end if; // ist vielleicht noch mal hilfreich
+F := Parent(z);	A<t> := PolynomialRing(ConstantField(F)); Ax := PolynomialRing(A);
+
+
+return Degree(Ax!Eltseq(Numerator(z)));
+
+end intrinsic;
+
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+
+
+intrinsic Deg(f::FldFunRatUElt)->RngIntElt
+{Let f=g/h with (g,h)=1. Then Degree(f)=Degree(g)-Degree(h)}
+
+return Degree(Numerator(f))-Degree(Denominator(f));
+
+end intrinsic;
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -430,9 +455,8 @@ end intrinsic;
 
 intrinsic IsPrimeIdeal(I::Rec)->BoolElt
 {True iff I is a record of type IdealRecord or PrimeIdealRecord corresponding to a prime ideal. }
-require IsPrimeIdealRecord(I)  or IsIdealRecord(I) or IsPlace(I): "Argument should be an ideal record or a prime ideal record"; 
+require IsPrimeIdealRecord(I)  or IsIdealRecord(I) : "Argument should be an ideal record or a prime ideal record"; 
 
-if IsPlace(I) then return false; end if;
 if IsPrimeIdealRecord(I) then 
     return true;
 else
@@ -512,18 +536,7 @@ end intrinsic;
 intrinsic PValuation(alpha::FldFunElt, P::Rec: RED:=false)->RngIntElt,FldFinElt
 {Compute the P-valuation of alpha at the prime ideal P, which can be given either as PrimeIdealRecord or as an IdealRecord}
 
-require IsPrimeIdeal(P) or IsPlace(P): "Second argument should be a prime ideal or a place";
-
-if IsPlace(P) then
-	
-	tmp:=P`FiniteIdeal^1;
-	if #(tmp`Factorization) eq 0 then
-		P:=P`InfiniteIdeal;
-	else
-		P:=P`FiniteIdeal;
-	end if;
-
-end if;
+require IsPrimeIdeal(P): "Second argument should be a prime ideal or a place";
 
 F:=P`Parent;
 if not alpha in F then
@@ -547,18 +560,7 @@ intrinsic PValuation(alpha::FldFunElt,P::Rec: RED:=false)->RngIntElt,FldFinElt
 {Compute the P-valuation of alpha at the prime ideal P, which can be given either as PrimeIdealRecord or as an IdealRecord.
 Also the class of alpha in P^value/P^value+1}
 
-require IsPrimeIdeal(P) or IsPlace(P): "Second argument should be a prime ideal or a place";
-
-if IsPlace(P) then
-	
-	tmp:=P`FiniteIdeal^1;
-	if #(tmp`Factorization) eq 0 then
-		P:=P`InfiniteIdeal;
-	else
-		P:=P`FiniteIdeal;
-	end if;
-
-end if;
+require IsPrimeIdeal(P): "Second argument should be a prime ideal or a place";
 
 K:=P`Parent;
 if not Parent(alpha) eq K then
@@ -623,34 +625,6 @@ end if;
 return value+cua,reduction;
 end intrinsic;
 
-/////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////
-
-intrinsic PValuation(D::Rec, P::Rec: RED:=false)->RngIntElt,FldFinElt
-{Compute the P-valuation of a divisor at the prime ideal P}
-
-require IsDivisor(D): "First argument should be a divisor";
-require IsPrimeIdeal(P) or IsPlace(P): "Second argument should be a prime ideal or a place";
-
-if IsPlace(P) then
-	
-	tmp:=P`FiniteIdeal^1;
-	if #(tmp`Factorization) eq 0 then
-		P:=P`InfiniteIdeal;
-	else
-		P:=P`FiniteIdeal;
-	end if;
-
-end if;
-S1,S2:=Support(D);
-bool,pos:=P in S1;
-if bool then 
-	return S2[pos];
-else
-	return 0;
-end if;	
-		
-end intrinsic;
 
 /////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
@@ -1732,6 +1706,7 @@ intrinsic Ideal_Basis(I::Rec:Maximal:=false)->SeqEnum
 {Computes a Hermite basis of the ideal I}
 
 //if not assigned I`Basis then
+	Factorization(~I);
 	F:=I`Parent;	kt:=PolynomialRing(ConstantField(F));
 	    tt:=Realtime();
 	if #I`Factorization eq 0 then Maximal:=true; end if;
@@ -2770,8 +2745,8 @@ end intrinsic;
 
 intrinsic 'eq'(I::Rec ,J:: Rec)-> BoolElt
 {True iff the fractional ideals I,J are equal. They are both factored if their factorization is not yet kwown.}
-require IsIdealRecord(I) or IsPrimeIdealRecord(I) or IsDivisor(I): "First argument is neither an IdealRecord record nor a PrimeIdealRecord";
-require IsIdealRecord(J) or IsPrimeIdealRecord(J) or IsDivisor(J): "Second argument is neither an IdealRecord record nor a PrimeIdealRecord";
+require IsIdealRecord(I) or IsPrimeIdealRecord(I) : "First argument is neither an IdealRecord record nor a PrimeIdealRecord";
+require IsIdealRecord(J) or IsPrimeIdealRecord(J) : "Second argument is neither an IdealRecord record nor a PrimeIdealRecord";
 
 if IsIdealRecord(I) or IsPrimeIdealRecord(I) and IsIdealRecord(J) or IsPrimeIdealRecord(J) then
 	if not I`Parent eq J`Parent then return false; end if;
@@ -2801,23 +2776,6 @@ require Degree(log) gt 1: "argument too short to be truncated";
 log:=Vector(Remove(Eltseq(log),Degree(log)));
 end intrinsic;
 
-
-/////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////
-
-intrinsic Signature(F::FldFun) -> SeqEnum
-{}
-signature:=[];
-for i in PrimesAtInfinity(F) do
-	if i`e eq 1 then
-		Append(~signature,[0:j in [1..i`f]]);
-	else
-		Append(~signature,[-j/i`e:j in [0..i`e-1]]);	
-	end if;	
-end for;
-signature:=&cat signature;
-return Sort(signature);
-end intrinsic;
 
 /////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
