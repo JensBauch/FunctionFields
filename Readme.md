@@ -6,7 +6,7 @@ It contains the following packages:
 
 1. +IdealsFF.m*
 
-2. Helpfunction.m
+2. Helpfunctions.m
 
 3. DivisorRep.m
 
